@@ -1,0 +1,128 @@
+
+$SQLLITE='C:\sqlite\sqlite-tools-win32-x86-3270200\sqlite3.exe'
+$sqlplus='C:\oracle\instantclient_11_2\sqlplus.exe'
+$BB_DIR='C:\bb2oracle\bb*\osbdata.db'
+$ARCHIVE='C:\bb2oracle\archive\\bb*\osbdata.db'
+$extension='.old'
+$LIST_TABLES=@("f3","f4","f6","f7","f8","f9")
+
+$OPEN_SQL_DB='.open '
+
+$SPOOL_FILE='
+.once '
+
+$SQLf3="
+SELECT 'insert into s_emtt_tmp (
+TT_DOC1,TT_DOC2,FORMNAME,
+LASTNAME,FIRSTNAME,SECNAME,
+PASS_TYPE,VOZVRAT,
+PRED_NAME,PRED_CODE,TICKET_OFFICE_CODE,
+SNILS,BEG_DATE,END_DATE,TT_DOC,
+IGD1S,IGD1F,IGD1I,IGD1O ) values ('''||f3.n_nomer|| ''','''|| f3.nomer || ''','''||
+trim(f3.forma)|| ''','''||
+trim(fio.f)||''','''|| trim(fio.i)||''','''|| trim(fio.o) || ''','''||
+trim( f3.shrp)|| ''','''|| trim(ifnull(f3.vozvr,''))|| ''','''||
+trim(forg.org)|| ''','''|| trim(forg.kodorg)|| ''','''|| f3.bb|| ''','''||
+ fio.snils||''',to_date('''||  f3.dataw|| ''',''YYYY-MM-DD HH24:MI:SS'')'|| 
+ ',to_date('''|| f3.crd||''',''YYYY-MM-DD HH24:MI:SS''),'''||  f3.n_nomer||f3.nomer
+ || ''','''||ifnull(ii.st,'') || ''','''||ifnull(ii.f,'' )|| ''','''||ifnull(ii.i,'') || ''','''|| ifnull(ii.o,'')||''');'
+ FROM fio, f3, forg
+ LEFT OUTER JOIN
+
+ igd ii ON fio.id=ii.parentid
+ 
+ WHERE (f3.parentid = fio.id) AND (fio.orgid = forg.id)
+ and   f3.dataw >=date('now','start of year','-12 months')
+ order by fio.f,fio.i, fio.o , dataw"
+
+$SQLf4="
+SELECT 'insert into s_emtt_tmp (
+TT_DOC1,TT_DOC2,FORMNAME,
+LASTNAME,FIRSTNAME,SECNAME,
+PASS_TYPE,VOZVRAT,
+PRED_NAME,PRED_CODE,TICKET_OFFICE_CODE,
+SNILS,BEG_DATE,END_DATE,TT_DOC,
+IGD1S,IGD1F,IGD1I,IGD1O ) values ('''||f4.n_nomer|| ''','''|| f4.nomer || ''','''||
+trim(f4.forma)|| ''','''||
+trim(fio.f)||''','''|| trim(fio.i)||''','''|| trim(fio.o) || ''','''||
+trim( f4.shrp)|| ''','''|| trim(ifnull(f4.vozvr,''))|| ''','''||
+trim(forg.org)|| ''','''|| trim(forg.kodorg)|| ''','''|| f4.bb|| ''','''||
+ fio.snils||''',to_date('''||  f4.dataw|| ''',''YYYY-MM-DD HH24:MI:SS'')'|| 
+ ',to_date('''|| f4.crd||''',''YYYY-MM-DD HH24:MI:SS''),'''||  f4.n_nomer||f4.nomer
+ || ''','''||ifnull(ii.st,'') || ''','''||ifnull(ii.f,'' )|| ''','''||ifnull(ii.i,'') || ''','''|| ifnull(ii.o,'')||''');'
+ FROM fio, f4, forg
+ LEFT OUTER JOIN
+
+ igd ii ON fio.id=ii.parentid
+ 
+ WHERE (f4.parentid = fio.id) AND (fio.orgid = forg.id)
+ and   f4.dataw >=date('now','start of year','-12 months')
+ order by fio.f,fio.i, fio.o , dataw"
+
+$SQLf6="
+SELECT 'insert into s_emtt_tmp (
+TT_DOC1,TT_DOC2,FORMNAME,
+LASTNAME,FIRSTNAME,SECNAME,
+PASS_TYPE,VOZVRAT,
+PRED_NAME,PRED_CODE,TICKET_OFFICE_CODE,
+SNILS,BEG_DATE,END_DATE,TT_DOC,
+IGD1S,IGD1F,IGD1I,IGD1O ) values ('''||f6.n_nomer|| ''','''|| f6.nomer || ''','''||
+trim(f6.forma)|| ''','''||
+trim(fio.f)||''','''|| trim(fio.i)||''','''|| trim(fio.o) || ''','''||
+trim( f6.shrp)|| ''','''|| trim(ifnull(f6.vozvr,''))|| ''','''||
+trim(forg.org)|| ''','''|| trim(forg.kodorg)|| ''','''|| f6.bb|| ''','''||
+ fio.snils||''',to_date('''||  f6.dataw|| ''',''YYYY-MM-DD HH24:MI:SS'')'|| 
+ ',to_date('''|| f6.crd||''',''YYYY-MM-DD HH24:MI:SS''),'''||  f6.n_nomer||f6.nomer
+ || ''','''||ifnull(ii.st,'') || ''','''||ifnull(ii.f,'' )|| ''','''||ifnull(ii.i,'') || ''','''|| ifnull(ii.o,'')||''');'
+ FROM fio, f6, forg
+ LEFT OUTER JOIN
+
+ igd ii ON fio.id=ii.parentid
+ 
+ WHERE (f6.parentid = fio.id) AND (fio.orgid = forg.id)
+ and   f6.dataw >=date('now','start of year','-12 months')
+ order by fio.f,fio.i, fio.o , dataw"
+
+
+
+#$a = new-object -comobject wscript.shell
+#$intAnswer = $a.popup("Вы хотите загрузить данные билетных бюро?", 0,"Загрузить файлы",4)
+#If ($intAnswer -eq 6) {
+#  $a.popup("Вы ответили Да. $intAnswer ")
+#} else {
+#  $a.popup("Вы ответили Нет. $intAnswer ")
+#  exit
+#}
+
+
+
+
+$files_input = Get-Childitem $BB_DIR
+
+
+foreach ($file_input in $files_input)
+{
+
+$file_out = [System.IO.Path]::GetFileName("$file_input")
+$dir_out = [System.IO.Path]::GetDirectoryName("$file_input")
+Write-Host "Найдены базы билетных бюро : $file_input"
+
+foreach ($table in $LIST_TABLES) 
+{
+Write-Host  "Обработка формы: $table"
+
+#$SQLFILE="$"+"SQL$table"
+#$SQL_OUT=invoke-expression($SQLFILE)
+
+
+
+#$SQL=$OPEN_SQL_DB +"'"+  $file_input +"'" + $SPOOL_FILE+"'"+$dir_out +"\insert_" + $table + ".sql'"  + $SQL_OUT
+
+#Write-Host $SQL
+
+#$SQL_EXE=$SQL + " | " + $SQLLITE 
+
+#$SQL | & $SQLLITE >out.txt
+}
+
+}
